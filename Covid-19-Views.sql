@@ -1,3 +1,26 @@
+-- View of Global Death Percentage
+
+DROP VIEW IF EXISTS TotalGlobalDeathPercentage
+CREATE VIEW TotalGlobalDeathPercentage AS
+
+SELECT SUM(new_cases) as total_cases, 
+SUM( cast( new_deaths as numeric ) ) as total_deaths, 
+SUM( cast( new_deaths as numeric ) ) / SUM( New_Cases ) *100 as DeathPercentage
+FROM TestDB..Covid_Deaths
+WHERE continent IS NOT NULL
+
+-- View of Death Percentage by Continent and Location
+
+DROP VIEW IF EXISTS DeathPercentagebyContinentandLocation
+CREATE VIEW DeathPercentagebyContinentandLocation AS
+
+SELECT continent, location, SUM(new_cases) as total_cases, 
+SUM( cast( new_deaths as numeric ) ) as total_deaths, 
+SUM( cast( new_deaths as numeric ) ) / SUM( New_Cases ) *100 as DeathPercentage
+FROM TestDB..Covid_Deaths
+WHERE continent IS NOT NULL
+GROUP BY continent, [location]
+
 
 -- View of Total Tests By Continent
 
@@ -46,3 +69,16 @@ JOIN TestDB..Covid_Vaccinations vac
 WHERE dea.continent IS NOT NULL
 GROUP BY dea.location, dea.continent
 
+-- View of ICU Patients % By Continent
+
+DROP VIEW IF EXISTS ICUPatientPercentage_By_Continent 
+CREATE VIEW ICUPatientPercentage_By_Continent  AS
+
+SELECT continent, 
+SUM( CONVERT( numeric, icu_patients ) ) as ICUPatients, 
+SUM( CONVERT( numeric, hosp_patients ) ) as TotalPatients,
+( SUM( CONVERT( numeric, icu_patients ) ) / SUM( CONVERT( numeric, hosp_patients ) ) )as ICUPatientPercentage
+FROM TestDB..Covid_Deaths
+WHERE icu_patients IS NOT NULL
+AND hosp_patients IS NOT NULL
+GROUP BY continent
